@@ -1,15 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toggleMenu } from "../utils/appSlice";
-import { YOUTUBE_SEARCH_API } from "../utils/constants";
+import {
+  YOUTUBE_SEARCH_API,
+  YOUTUBE_SEARCH_VIDEOS_API,
+} from "../utils/constants";
+import { cachedSearch } from "../utils/searchSlice";
+import { LoadVideos, searchVideoResults } from "../utils/videoSlice";
 
 const Header = () => {
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const cacheResult = useSelector((store) => store.search);
+
   useEffect(() => {
-    const timer = setTimeout(() => getSearchSuggestions(), 200);
+    const timer = setTimeout(
+      () => {
+        if (cacheResult[searchQuery]) {
+          setSearchResults(cacheResult[searchQuery]);
+        } else {
+          getSearchSuggestions();
+        }
+      },
+
+      200
+    );
 
     return () => {
       clearTimeout(timer);
@@ -17,15 +34,30 @@ const Header = () => {
   }, [searchQuery]);
 
   const getSearchSuggestions = async () => {
-    console.log("search query", searchQuery);
     const data = await fetch(
       "https://corsproxy.io/?" + YOUTUBE_SEARCH_API + searchQuery
     );
     const json = await data.json();
     setSearchResults(json[1]);
-    console.log(searchResults[1]);
+    dispatch(
+      cachedSearch({
+        [searchQuery]: json[1],
+      })
+    );
   };
 
+  const getSearchedVideos = async () => {
+    const data = await fetch(
+      "https://corsproxy.io/?" +
+        YOUTUBE_SEARCH_VIDEOS_API +
+        "?part=snippet&q=" +
+        searchQuery +
+        "&key=" +
+        process.env.REACT_APP_API_KEY
+    );
+    const json = await data.json();
+    dispatch(searchVideoResults(json.items));
+  };
   const toggleSideBar = () => {
     dispatch(toggleMenu());
   };
@@ -53,22 +85,27 @@ const Header = () => {
             className="border border-gray-400 rounded-l-full w-1/2 p-1 px-2"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={()=>setShowSearchResults(true)}
-            onBlur={()=>setShowSearchResults(false)}
+            onFocus={() => setShowSearchResults(true)}
+            onBlur={() => setShowSearchResults(false)}
           />
-          <button className="border border-gray-400 p-1 rounded-r-full bg-slate-200">
+          <button
+            className="border border-gray-400 p-1 rounded-r-full bg-slate-200"
+            onClick={getSearchedVideos}
+          >
             🔍
           </button>
         </div>
-        { showSearchResults && <div className="absolute bg-white p-1 w-[28rem]  rounded-lg shadow-lg ">
-        <ul>
-            {searchResults.map((s) => (
-              <li key={s} className=" p-1 shadow-sm hover:bg-slate-100">
-                🔍 {s}
-              </li>
-            ))}
-          </ul>
-        </div>}
+        {showSearchResults && (
+          <div className="absolute bg-white p-1 w-[28rem]  rounded-lg shadow-lg ">
+            <ul>
+              {searchResults.map((s) => (
+                <li key={s} className=" p-1 shadow-sm hover:bg-slate-100">
+                  🔍 {s}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="col-span-1">
