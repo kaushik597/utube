@@ -7,3 +7,5 @@ export const YOUTUBE_SEARCH_API =
 
 export const YOUTUBE_SEARCH_VIDEOS_API =
   "https://www.googleapis.com/youtube/v3/search";
+
+export const CHAT_OFFSET_COUNT= 15;

@@ -38,6 +38,7 @@ const Header = () => {
       "https://corsproxy.io/?" + YOUTUBE_SEARCH_API + searchQuery
     );
     const json = await data.json();
+    
     setSearchResults(json[1]);
     dispatch(
       cachedSearch({

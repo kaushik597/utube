@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { closeMenu } from "../utils/appSlice";
 import { useSearchParams } from "react-router-dom";
 import Commentscontainer from "./Commentscontainer";
+import ChatContainer from "./ChatContainer";
 const WatchPage = () => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
@@ -20,8 +21,9 @@ const WatchPage = () => {
   };
 
   return (
-    <div className="flex flex-col">
-      <div>
+    <div className="flex flex-col w-full">
+      <div className="flex">
+        <div>
         <iframe
           width="900"
           height="450"
@@ -32,6 +34,11 @@ const WatchPage = () => {
           referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
         ></iframe>
+        </div>
+        <div className="w-full">
+          <ChatContainer />
+        </div>
+      
       </div>
       <Commentscontainer />
     </div>
